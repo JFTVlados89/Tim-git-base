@@ -91,19 +91,41 @@ users: dict[int, UserResponse] = {}
 
 ### Запуск локально
 
+Все команды в этом README вводятся в терминале (macOS/Linux — «Терминал», Windows — PowerShell или терминал в VS Code/PyCharm) по одной, из корня склонированного репозитория. Строки, начинающиеся с `#`, — пояснения, их вводить не нужно.
+
 ```sh
+# перейти в папку REST-сервиса
 cd rest-api
-python -m venv .venv && source .venv/bin/activate
+
+# создать виртуальное окружение Python в папке .venv
+python -m venv .venv
+
+# включить виртуальное окружение (macOS/Linux)
+source .venv/bin/activate
+# то же самое в Windows (PowerShell)
+.venv\Scripts\Activate.ps1
+
+# установить зависимости из requirements.txt
 pip install -r requirements.txt
+
+# запустить сервис на http://localhost:8000 с автоперезапуском при изменении кода
 uvicorn main:app --reload
 ```
 
-Swagger UI — http://localhost:8000/docs.
+Остановить сервис — `Ctrl+C` в том же терминале. Пока сервис запущен, Swagger UI открывается в браузере по адресу http://localhost:8000/docs: там можно вызвать каждый метод кнопкой «Try it out».
 
 
 ## gRPC: требования
 
-1. Скопируйте шаблон: `cp -r templates/grpc grpc`.
+1. Скопируйте шаблон в папку `grpc/` (в терминале, из корня репозитория):
+
+   ```sh
+   # скопировать папку templates/grpc в новую папку grpc (macOS/Linux)
+   cp -r templates/grpc grpc
+   # то же самое в Windows (PowerShell)
+   Copy-Item -Recurse templates/grpc grpc
+   ```
+
 2. Опишите свой сервис в `grpc/proto/*.proto` (шаблон — `item.proto`). В сервисе должны быть все четыре типа вызовов:
    - `rpc A (Req) returns (Resp)` — unary;
    - `rpc B (Req) returns (stream Resp)` — server streaming;
@@ -112,8 +134,17 @@ Swagger UI — http://localhost:8000/docs.
 3. Сгенерируйте код и закоммитьте сгенерированные файлы:
 
    ```sh
+   # перейти в папку gRPC-сервиса
    cd grpc
+
+   # создать и включить виртуальное окружение (в Windows: .venv\Scripts\Activate.ps1)
+   python -m venv .venv
+   source .venv/bin/activate
+
+   # установить зависимости сервиса и генератор кода grpcio-tools
    pip install -r requirements.txt -r requirements-dev.txt
+
+   # сгенерировать item_pb2.py и item_pb2_grpc.py из proto/item.proto в текущую папку
    python -m grpc_tools.protoc -I proto --python_out=. --grpc_python_out=. proto/item.proto
    ```
 
@@ -122,8 +153,13 @@ Swagger UI — http://localhost:8000/docs.
 5. Проверьте сервис, например, через [`grpcurl`](https://github.com/fullstorydev/grpcurl) (в шаблоне включён reflection):
 
    ```sh
-   cd grpc && python server.py
+   # терминал 1, в папке grpc: запустить сервер на порту 50051 (остановить — Ctrl+C)
+   python server.py
+
+   # терминал 2: показать список сервисов, которые отдаёт сервер
    grpcurl -plaintext localhost:50051 list
+
+   # терминал 2: вызвать unary-метод GetItem с запросом {"id": "1"}
    grpcurl -plaintext -d '{"id": "1"}' localhost:50051 homework.v1.ItemService/GetItem
    ```
 
