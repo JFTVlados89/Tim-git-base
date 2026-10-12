@@ -54,7 +54,9 @@ class ErrorResponse(BaseModel):
 
 app = FastAPI(title="Item Service", version="1.0.0")
 
-# TODO: выберите хранилище (словарь в памяти, SQLite, ...).
+# «База» данных — словарь в памяти: ключ — item_id, значение — объект.
+# Базу данных (SQLite и т. п.) не используем.
+items: dict[int, ItemResponse] = {}
 
 
 @app.post(
