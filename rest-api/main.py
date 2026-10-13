@@ -1,13 +1,13 @@
 """Шаблон REST-сервиса для ДЗ семинара 6.
 
 Ориентир — user-service из семинара 3 (ветка seminar/03-api-interaction).
-Можно оставить «пользователей», а можно придумать свою предметную область:
+Можно оставить «пользователей», а можно придумать свою предметную область — Промышленные объекты:
 переименуйте модели и пути, но сохраните четыре метода и форму CRUD:
 
-    POST   /v1/<resource>          — создать объект, вернуть его идентификатор
-    GET    /v1/<resource>/{id}     — получить объект
-    PUT    /v1/<resource>/{id}     — изменить объект
-    DELETE /v1/<resource>/{id}     — удалить объект
+    POST   /v1/facility                   — создать объект, вернуть его идентификатор
+    GET    /v1/facility/{facility_id}     — получить объект
+    PUT    /v1/facility/{facility_id}     — изменить объект
+    DELETE /v1/facility/{facility_id}     — удалить объект
 
 Запуск: uvicorn main:app --reload  →  http://localhost:8000/docs
 """
@@ -26,26 +26,29 @@ from pydantic import BaseModel, Field
 # OpenAPI и в первую очередь берёт значения из examples.
 
 
-class ItemCreate(BaseModel):
-    # TODO: замените на поля своей модели.
-    name: str = Field(min_length=1, max_length=100, examples=["example"])
+class FacilityCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=100, examples=['Production and warehouse complex'])
+    type: str = Field(min_length=1, max_length=50, examples=['factory'])
+    price: int = Field(ge=0, le=3_000_000_000,examples=[100000000])
 
 
-class ItemUpdate(BaseModel):
-    # TODO: поля для изменения (обычно те же, но необязательные).
+
+class FacilityUpdate(BaseModel):
     name: Optional[str] = Field(default=None, min_length=1, max_length=100, examples=["updated"])
-
+    type: Optional[str] = Field(default=None, min_length=1, max_length=50, examples=["updated"])
+    price: Optional[int] = Field(default=None, ge=0, le=3_000_000_000, examples=[15000000])
 
 # --- Модели ответов --------------------------------------------------------
 
 
-class ItemCreated(BaseModel):
-    # Ответ POST обязан содержать идентификатор созданного объекта.
-    item_id: int
+class FacilityCreated(BaseModel):
+    facility_id: int
 
 
-class ItemResponse(ItemCreated):
+class FacilityResponse(FacilityCreated):
     name: str
+    type: str
+    price: int 
 
 
 class ErrorResponse(BaseModel):
@@ -54,47 +57,67 @@ class ErrorResponse(BaseModel):
 
 app = FastAPI(title="Item Service", version="1.0.0")
 
-# «База» данных — словарь в памяти: ключ — item_id, значение — объект.
+# «База» данных — словарь в памяти: ключ — facility_id, значение — объект.
 # Базу данных (SQLite и т. п.) не используем.
-items: dict[int, ItemResponse] = {}
+facilities: dict[int, FacilityResponse] = {}
 
 
 @app.post(
-    "/v1/item",
+    "/v1/facility",
     status_code=201,
-    response_model=ItemCreated,
+    response_model=FacilityCreated,
 )
-async def create_item(payload: ItemCreate) -> ItemCreated:
-    # TODO: сохранить объект и вернуть его идентификатор.
-    raise HTTPException(status_code=501, detail="Not implemented")
-
+async def create_facility(payload: FacilityCreate) -> FacilityCreated:
+    new_facility_id = len(facilities) + 1 # создаем уникальный ID объекта
+    new_facility = FacilityResponse( # Создаем карточку объекта 
+        facility_id = new_facility_id, #достаем из payload ID объекта 
+        name = payload.name, #достаем из payload имя объекта 
+        type = payload.type, #достаем из payload тип объекта 
+        price = payload.price #достаем из payload цену объекта 
+    )
+    facilities[new_facility_id] = new_facility #Сохраняем наш словарь
+    return FacilityCreated(facility_id=new_facility_id) #вывод
+#raise HTTPException(status_code=501) -- наша заглушка. Изначальный ошибка 501 Not Implemented "Не реализованно"
 
 @app.get(
-    "/v1/item/{item_id}",
-    response_model=ItemResponse,
+    "/v1/facility/{facility_id}",
+    response_model=FacilityResponse,
     responses={404: {"model": ErrorResponse, "description": "Item not found"}},
 )
-async def get_item(item_id: int) -> ItemResponse:
-    # TODO: вернуть объект или 404, если его нет.
-    raise HTTPException(status_code=501, detail="Not implemented")
+async def get_facility(facility_id: int) -> FacilityResponse:
+    if facility_id in facilities: # проверка на существование ID объекта
+        return facilities[facility_id]
+    else:
+        raise HTTPException(status_code=404, detail="Facility not found") # Иначе ошибка, что такого объекта не существует  
 
 
 @app.put(
-    "/v1/item/{item_id}",
-    response_model=ItemResponse,
+    "/v1/facility/{facility_id}",
+    response_model=FacilityResponse,
     responses={404: {"model": ErrorResponse, "description": "Item not found"}},
 )
-async def update_item(item_id: int, payload: ItemUpdate) -> ItemResponse:
-    # TODO: изменить объект и вернуть его новое состояние или 404.
-    raise HTTPException(status_code=501, detail="Not implemented")
-
+async def update_facility(facility_id: int, payload: FacilityUpdate) -> FacilityResponse:
+    if facility_id not in facilities: #проверяем на его отсутствие 
+        raise HTTPException(status_code=404, detail="Facility not changeded")
+    
+    if payload.name is not None: #проверяем поле name на is not None 
+        facilities[facility_id].name = payload.name #изменяем name
+    if payload.type is not None: #проверяем поле type на is not None 
+        facilities[facility_id].type = payload.type #изменяем type
+    if payload.price is not None:  #проверяем поле price на is not None 
+        facilities[facility_id].price = payload.price #изменяем price
+    return facilities[facility_id] #возвращаем обновленный объект
+    
 
 @app.delete(
-    "/v1/item/{item_id}",
+    "/v1/facility/{facility_id}",
     status_code=204,
     response_model=None,
     responses={404: {"model": ErrorResponse, "description": "Item not found"}},
 )
-async def delete_item(item_id: int) -> None:
-    # TODO: удалить объект или вернуть 404.
-    raise HTTPException(status_code=501, detail="Not implemented")
+async def delete_facility(facility_id: int) -> None:
+    if facility_id in facilities:
+        del facilities[facility_id]
+        return # Ничего не возвращаем т.к писали None в этой функции  
+    else:
+        raise HTTPException(status_code=404, detail="Facility not deleted")
