@@ -116,8 +116,8 @@ async def update_facility(facility_id: int, payload: FacilityUpdate) -> Facility
     responses={404: {"model": ErrorResponse, "description": "Item not found"}},
 )
 async def delete_facility(facility_id: int) -> None:
-    if facility_id in facilities:
-        del facilities[facility_id]
-        return # Ничего не возвращаем т.к писали None в этой функции  
-    else:
+    deleted_facility = facilities.pop(facility_id, None)
+    if deleted_facility is None:
         raise HTTPException(status_code=404, detail="Facility not deleted")
+        
+    return
