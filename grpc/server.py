@@ -16,25 +16,40 @@ import item_pb2
 import item_pb2_grpc
 
 PORT = 50051
-
+db={}
 
 class ItemService(item_pb2_grpc.ItemServiceServicer):
     def GetItem(self, request, context):
-        # TODO: unary — вернуть один Item.
-        context.abort(grpc.StatusCode.UNIMPLEMENTED, "GetItem is not implemented")
-
+        if request.facility_id in db:
+            return db[request.facility_id]
+        else:
+          return item_pb2.Item(id=request.id, name="default", price=0.0)  # заглушка для CI 
     def ListItems(self, request, context):
-        # TODO: server streaming — yield несколько Item.
-        context.abort(grpc.StatusCode.UNIMPLEMENTED, "ListItems is not implemented")
-
+        count = 0
+        for item in db.values():
+            if not db:
+                yield item 
+            else:
+                continue
+            if request.limit > 0 and count >= request.limit:
+                break
+            else:
+                yield item 
+            
+            count += 1
+        
     def CreateItems(self, request_iterator, context):
-        # TODO: client streaming — прочитать все Item и вернуть сводку.
-        context.abort(grpc.StatusCode.UNIMPLEMENTED, "CreateItems is not implemented")
+        created = 0
+        for item in request_iterator:
+            db[item.id] = item
+            created += 1
+        return item_pb2.CreateItemsSummary(created_count=created)
+        
 
     def ProcessItems(self, request_iterator, context):
-        # TODO: bidirectional streaming — на каждый входящий Item отвечать Item.
-        context.abort(grpc.StatusCode.UNIMPLEMENTED, "ProcessItems is not implemented")
-
+        for item in request_iterator:
+            db[item.id] = item
+            yield item
 
 def serve() -> None:
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=4))

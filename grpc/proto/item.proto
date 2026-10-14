@@ -2,21 +2,16 @@ syntax = "proto3";
 
 package homework.v1;
 
-
 service FacilityService {
   
   rpc GetFacility (GetFacilityRequest) returns (Facility);
   
- 
   rpc ListFacilities (ListFacilitiesRequest) returns (stream Facility);
-  
   
   rpc CreateFacilities (stream Facility) returns (CreateFacilitiesSummary);
   
- 
   rpc ProcessFacilities (stream Facility) returns (stream Facility);
 }
-
 
 message Facility {
   int32 facility_id = 1; 
@@ -25,7 +20,6 @@ message Facility {
   int32 price = 4;
 }
 
-// Запрос для GetFacility
 message GetFacilityRequest {
   int32 facility_id = 1;
 }
