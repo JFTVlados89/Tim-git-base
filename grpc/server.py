@@ -16,29 +16,27 @@ import item_pb2
 import item_pb2_grpc
 
 PORT = 50051
-db={}
+db={
+    "item-1": item_pb2.Item(id="item-1", name="Base Facility", price=10000000.0)
+}
 
 class ItemService(item_pb2_grpc.ItemServiceServicer):
     def GetItem(self, request, context):
-        if request.facility_id in db:
-            return db[request.facility_id]
+        if request.id in db:
+            return db[request.id]
         else:
-          return item_pb2.Item(id=request.id, name="default", price=0.0)  # заглушка для CI 
+          context.abort(grpc.StatusCode.NOT_FOUND, "Item not found")
     def ListItems(self, request, context):
         count = 0
         for item in db.values():
-            if not db:
-                yield item 
-            else:
-                continue
             if request.limit > 0 and count >= request.limit:
                 break
             else:
                 yield item 
-            
             count += 1
         
     def CreateItems(self, request_iterator, context):
+        print(f"Вызван ListItems. Текущая база: {db}")
         created = 0
         for item in request_iterator:
             db[item.id] = item

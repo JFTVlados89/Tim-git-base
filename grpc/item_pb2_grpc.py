@@ -26,9 +26,7 @@ if _version_not_supported:
 
 
 class ItemServiceStub(object):
-    """Шаблон: замените сообщения и методы на свою предметную область,
-    но сохраните четыре типа взаимодействия.
-    """
+    """Missing associated documentation comment in .proto file."""
 
     def __init__(self, channel):
         """Constructor.
@@ -59,34 +57,28 @@ class ItemServiceStub(object):
 
 
 class ItemServiceServicer(object):
-    """Шаблон: замените сообщения и методы на свою предметную область,
-    но сохраните четыре типа взаимодействия.
-    """
+    """Missing associated documentation comment in .proto file."""
 
     def GetItem(self, request, context):
-        """Unary: один запрос -> один ответ.
-        """
+        """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def ListItems(self, request, context):
-        """Server streaming: один запрос -> поток ответов.
-        """
+        """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def CreateItems(self, request_iterator, context):
-        """Client streaming: поток запросов -> один ответ.
-        """
+        """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def ProcessItems(self, request_iterator, context):
-        """Bidirectional streaming: поток запросов <-> поток ответов.
-        """
+        """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
@@ -123,9 +115,7 @@ def add_ItemServiceServicer_to_server(servicer, server):
 
  # This class is part of an EXPERIMENTAL API.
 class ItemService(object):
-    """Шаблон: замените сообщения и методы на свою предметную область,
-    но сохраните четыре типа взаимодействия.
-    """
+    """Missing associated documentation comment in .proto file."""
 
     @staticmethod
     def GetItem(request,
